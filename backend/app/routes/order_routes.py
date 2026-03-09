@@ -21,6 +21,7 @@ from ..schemas.order_schema import (
 order_bp = Blueprint("orders", __name__)
 
 
+# ── GET /orders ────────────────────────────────────────────────────────────────
 @order_bp.get("/")
 @jwt_required()
 def list_orders():
@@ -28,14 +29,15 @@ def list_orders():
     if err:
         return err
 
-    if user.role == UserRole.ADMIN:
-        orders = Order.query.all()
-    else:
-        orders = Order.query.filter_by(user_id=user.id).all()
-
+    orders = (
+        Order.query.all()
+        if user.role == UserRole.ADMIN
+        else Order.query.filter_by(user_id=user.id).all()
+    )
     return jsonify(OrderResponseSchema(many=True).dump(orders)), 200
 
 
+# ── GET /orders/<id> ───────────────────────────────────────────────────────────
 @order_bp.get("/<int:order_id>")
 @jwt_required()
 def get_order(order_id):
@@ -53,6 +55,7 @@ def get_order(order_id):
     return jsonify(OrderResponseSchema().dump(order)), 200
 
 
+# ── POST /orders/checkout ──────────────────────────────────────────────────────
 @order_bp.post("/checkout")
 @jwt_required()
 def checkout():
@@ -64,7 +67,7 @@ def checkout():
 
     data = request.get_json(silent=True) or {}
     schema = OrderCreateSchema()
-    schema.context={"cart": cart}
+    schema.context = {"cart": cart}
     try:
         validated = schema.load(data)
     except ValidationError as ve:
@@ -79,32 +82,37 @@ def checkout():
         delivery_status=DeliveryStatus.pending,
     )
 
-    # copy items from cart (snapshot prices)
+    # snapshot items from cart
+    subtotal = 0
     for ci in cart.items:
         order.items.append(OrderItem(
             product_id=ci.product_id,
             unit_amount=ci.unit_amount,
             quantity=ci.quantity,
         ))
-
-    order.recalc_totals()
+        subtotal += ci.unit_amount * ci.quantity
+    order.subtotal_amount = subtotal
+    order.total_amount = subtotal 
 
     # decrease stock
     for ci in cart.items:
-        p = Product.query.get(ci.product_id)
-        p.quantity -= ci.quantity
+        product = Product.query.get(ci.product_id)
+        if product:
+            product.quantity -= ci.quantity
 
-    # create a payment attempt (created)
-    payment = Payment(
+    # create initial payment attempt
+    order.payments.append(Payment(
         order=order,
         provider=PaymentProvider(validated["payment_provider"]),
         status=PaymentStatus.created,
         currency=order.currency,
         amount=order.total_amount,
-    )
-    order.payments.append(payment)
+    ))
 
-    # close cart
+    # close cart — delete old converted carts first to avoid unique constraint
+    Cart.query.filter(
+    Cart.user_id == user.id,
+    Cart.status == CartStatus.converted).delete()
     cart.status = CartStatus.converted
 
     db.session.add(order)
@@ -113,6 +121,7 @@ def checkout():
     return jsonify(OrderResponseSchema().dump(order)), 201
 
 
+# ── PUT /orders/<id>  (admin only) ─────────────────────────────────────────────
 @order_bp.put("/<int:order_id>")
 @jwt_required()
 def admin_update_order(order_id):
@@ -142,6 +151,7 @@ def admin_update_order(order_id):
     return jsonify(OrderResponseSchema().dump(order)), 200
 
 
+# ── POST /orders/<id>/cancel ───────────────────────────────────────────────────
 @order_bp.post("/<int:order_id>/cancel")
 @jwt_required()
 def cancel_order(order_id):

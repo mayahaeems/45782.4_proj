@@ -1,39 +1,55 @@
-version: "3.9"
+version: '3.9'
 
 services:
-  mysql:
-    image: mysql:8
-    container_name: mysql
-    restart: always
+
+  # ── MySQL ──────────────────────────────────────────────────────────────────
+  db:
+    image: mysql:8.0
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: 1QAZ2wsx34
-      MYSQL_DATABASE: supermarket
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE:      ${MYSQL_DATABASE:-supermarket}
+      MYSQL_USER:          ${MYSQL_USER:-superuser}
+      MYSQL_PASSWORD:      ${MYSQL_PASSWORD:-superpass}
+    volumes:
+      - db_data:/var/lib/mysql
     ports:
       - "3307:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
+  # ── Flask backend ──────────────────────────────────────────────────────────
   backend:
-    build:
-      context: ./backend
-    container_name: backend
-    restart: always
-    env_file:
-      - ./backend/.env
+    build: ./backend
+    restart: unless-stopped
     depends_on:
-      - mysql
+      db:
+        condition: service_healthy
+    environment:
+      SQLALCHEMY_DATABASE_URI: mysql+pymysql://${MYSQL_USER:-superuser}:${MYSQL_PASSWORD:-superpass}@db:3306/${MYSQL_DATABASE:-supermarket}?charset=utf8mb4
+      SECRET_KEY:     ${SECRET_KEY:-change-me-in-production}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-change-jwt-in-production}
+      UPLOAD_FOLDER:  /app/instance/uploads
+      CORS_ORIGINS:   http://localhost:3000
+    volumes:
+      - uploads:/app/instance/uploads
     ports:
-      - "3000:3000"
+      - "5000:3000"
 
+  # ── React frontend ─────────────────────────────────────────────────────────
   frontend:
     build:
-      context: ./supermarket-frontend
-    container_name: frontend
-    restart: always
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
     depends_on:
       - backend
     ports:
-      - "8080:80"
+      - "3000:80"
 
 volumes:
-  mysql_data:
+  db_data:
+  uploads:

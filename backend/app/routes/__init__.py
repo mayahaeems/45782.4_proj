@@ -1,4 +1,6 @@
 from .auth_routes import auth_bp
+from .inventory_log_routes import inventory_log_bp
+from .category_log_routes import category_log_bp
 from .user_routes import user_bp
 from .product_routes import product_bp
 from .category_routes import category_bp
@@ -15,12 +17,14 @@ def _register_once(app, bp, name=None, url_prefix=None):
     app.register_blueprint(bp, name=name, url_prefix=url_prefix)
 
 def register_blueprints(app):
-    _register_once(app, auth_bp, name="auth_routes_bp")
-    _register_once(app, user_bp, name="user_routes_bp")
-    _register_once(app, product_bp, name="product_routes_bp")
-    _register_once(app, category_bp, name="category_routes_bp")
-    _register_once(app, cart_bp, name="cart_routes_bp")
-    _register_once(app, order_bp, name="order_routes_bp")
-    _register_once(app, files_bp, name="files_routes_bp")
-    _register_once(app, payment_bp, name="payment_routes_bp")
-    _register_once(app, delivery_bp, name="delivery_routes_bp")
+    _register_once(app, auth_bp,           name="auth_routes_bp",          url_prefix="/auth")
+    _register_once(app, user_bp,           name="user_routes_bp",          url_prefix="/users")
+    _register_once(app, product_bp,        name="product_routes_bp",       url_prefix="/products")
+    _register_once(app, category_bp,       name="category_routes_bp",      url_prefix="/categories")
+    _register_once(app, cart_bp,           name="cart_routes_bp",          url_prefix="/cart")
+    _register_once(app, order_bp,          name="order_routes_bp",         url_prefix="/orders")
+    _register_once(app, payment_bp,        name="payment_routes_bp",       url_prefix="/payments")
+    _register_once(app, delivery_bp,       name="delivery_routes_bp",      url_prefix="/delivery")
+    _register_once(app, files_bp,          name="files_routes_bp",         url_prefix="/files")
+    _register_once(app, inventory_log_bp,  name="inventory_log_routes_bp", url_prefix="/inventory-logs")
+    _register_once(app, category_log_bp,   name="category_log_routes_bp",  url_prefix="/category-logs")
