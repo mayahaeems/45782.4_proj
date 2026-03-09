@@ -1,258 +1,306 @@
-🛒 Supermarket App
+# 🛒 SuperMart
 
-A full-stack supermarket web application with authentication, product browsing, categories, and cart functionality.
+A full-stack supermarket web application with role-based access control, product management, cart & checkout, order tracking, and a delivery dashboard.
 
-Built with a Dockerized frontend + backend architecture.
+Built with **Flask** (backend) + **React + Vite** (frontend), containerized with Docker.
 
-✨ Features
+---
 
-🔐 User authentication (login/logout)
+## ✨ Features
 
-🛍 Product listing with categories
+- 🔐 JWT authentication (login / register / refresh)
+- 🛍 Product catalog with categories, search & filtering
+- 🛒 Cart — guest cart merges on login
+- 💳 Checkout & order placement
+- 📦 Order history & order detail pages
+- 🚚 Delivery dashboard (assign & update delivery status)
+- 🛠 Admin panel — products, categories, orders, users, inventory logs
+- 🖼 Product & category images (auto-generated placeholders on first run)
+- 👤 Role-based access: `user` / `delivery` / `admin`
 
-🔍 Search & filtering
+---
 
-🛒 Add to cart
+## 🏗 Tech Stack
 
-💾 Persistent auth session
+### Frontend
+| Library | Version |
+|---|---|
+| React | 18 |
+| Vite | 5 |
+| TailwindCSS | 3 |
+| React Router | 6 |
+| TanStack Query | 5 |
+| Zustand | 5 |
+| Axios | 1.7 |
+| React Hook Form + Zod | — |
+| Lucide React | — |
 
-⚡ Dockerized development & deployment
+### Backend
+| Library | Version |
+|---|---|
+| Flask | 3.1 |
+| Flask-JWT-Extended | 4.7 |
+| Flask-SQLAlchemy | 3.1 |
+| Marshmallow | 3.21 |
+| PyMySQL | 1.1 |
+| Pillow | 10.4 |
+| Werkzeug | 3.1 |
 
-📦 API-driven backend
+### Infrastructure
+- **MySQL 8** (via Docker)
+- **Docker + Docker Compose**
+- **Nginx** (serves frontend production build)
 
-🏗 Tech Stack
+---
 
-Frontend
+## 📁 Project Structure
 
-React
-
-TypeScript
-
-Vite
-
-TailwindCSS
-
-Backend
-
-Python API (FastAPI / Flask — adjust if needed)
-
-REST endpoints
-
-DevOps
-
-Docker
-
-Docker Compose
-
-Nginx (frontend serving)
-
-📁 Project Structure
+```
 supermarket-app/
-│
-├── backend/        # Python API
-├── frontend/       # React frontend
+├── backend/
+│   ├── models/          # SQLAlchemy models (User, Product, Order, Cart…)
+│   ├── routes/          # Flask blueprints (auth, products, orders, cart…)
+│   ├── schemas/         # Marshmallow serialization schemas
+│   ├── utils/           # api helpers, upload utilities
+│   ├── config.py        # App configuration (env-driven)
+│   ├── extensions.py    # db, jwt instances
+│   ├── seed.py          # DB seeder (users, products, categories, images)
+│   └── run.py           # Entry point
+├── frontend/
+│   ├── src/
+│   │   ├── api/         # Axios API clients per resource
+│   │   ├── components/  # Shared UI components + layout
+│   │   ├── pages/       # Route-level pages (shop, admin, delivery, auth)
+│   │   ├── store/       # Zustand stores (auth, cart)
+│   │   ├── hooks/       # Custom React hooks
+│   │   └── utils/       # Formatting helpers
+│   └── index.html
 ├── docker-compose.yml
 └── README.md
+```
 
-🚀 Running the App (Docker)
-1. Build & start containers
+---
+
+## 🚀 Running with Docker (Recommended)
+
+### Prerequisites
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running
+
+### 1. Start the app
+
+```bash
 docker compose up --build
-
-2. Stop containers
-docker compose down
-
-🌐 Access
-
-After startup:
-
-Frontend → http://localhost
-
-Backend API → http://localhost:8000
- (or your configured port)
-
-🔐 Authentication
-
-Login endpoint:
-
-POST /auth/login
-
-
-Expected response:
-
-{
-  "access_token": "...",
-  "user": {
-    "email": "user@example.com",
-    "role": "user"
-  }
-}
-
-
-Token is stored in localStorage and used automatically for protected requests.
-
-🛒 Cart Behavior
-
-Cart requires login
-
-Add to cart is disabled without authentication
-
-Session persists across refresh
-
-🧪 Local Development (without Docker)
-
-Frontend:
-
-cd frontend
-npm install
-npm run dev
-
-
-Backend:
-
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
-
-🛠 Environment Variables
-
-Create .env if needed:
-
-API_URL=http://localhost:8000
-
-🐳 Docker Notes
-
-Multi-stage frontend build
-
-Nginx serves production bundle
-
-Backend runs Python slim image
-
-Compose handles networking automatically
-
-📌 Known Improvements (optional roadmap)
-
-Admin dashboard
-
-Order history
-
-Payments
-
-Product images
-
-JWT refresh tokens
-
-Role-based permissions
-
-👩‍💻 Author
-
-Maya Haeems
-Full Stack Course Project
-
-If you want, I can:
-
-✅ Add API documentation section
-✅ Add screenshots section
-✅ Add database schema
-✅ Add deployment instructions
-✅ Add CI/CD
-✅ Make it GitHub-ready
-✅ Add badges
-✅ Write in Hebrew
-✅ Add license
-▶️ How to Run the App
-✅ Recommended: Run with Docker
-
-This is the easiest way — no manual setup needed.
-
-1. Install prerequisites
-
-Make sure you have:
-
-Docker Desktop installed
-
-Docker Compose enabled
-
-Check:
-
-docker --version
-docker compose version
-
-2. Build and start the app
-
-From the project root:
-
-docker compose up --build
-
+```
 
 This will:
+- Start a **MySQL 8** database on port `3307`
+- Build & start the **Flask backend** on port `5000`
+- Build & start the **React frontend** (Nginx) on port `3000`
+- Seed the database with demo products, categories, and users on first run
 
-build frontend image
+### 2. Open the app
 
-build backend image
+| Service | URL |
+|---|---|
+| Frontend | http://localhost:3000 |
+| Backend API | http://localhost:5000 |
 
-start containers
+### 3. Stop the app
 
-connect services automatically
-
-3. Open the app
-
-After startup:
-
-👉 Frontend: http://localhost
-
-👉 Backend API: http://localhost:8000
-
-4. Stop the app
+```bash
 docker compose down
+```
 
-💻 Run Without Docker (Local Development)
-Frontend
+---
+
+## 💻 Local Development (without Docker)
+
+### Backend
+
+```bash
+cd backend
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+
+# Configure environment (see .env section below)
+python run.py
+```
+
+Backend runs at: **http://localhost:5000**
+
+### Frontend
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
+Frontend runs at: **http://localhost:3000**
 
-Frontend runs at:
+> The Vite dev server proxies all API calls to `http://localhost:5000` automatically.
 
-http://localhost:5173
+---
 
-Backend
-cd backend
-pip install -r requirements.txt
-uvicorn main:app --reload
+## 🔐 Default Seed Accounts
 
+These accounts are created automatically on first run:
 
-Backend runs at:
+| Role | Email | Password |
+|---|---|---|
+| Admin | admin@supermart.local | Admin123! |
+| Delivery | delivery1@supermart.local | Delivery123! |
+| Delivery | delivery2@supermart.local | Delivery123! |
+| User | maya@supermart.local | User123! |
 
-http://localhost:8000
+> Additional regular user accounts are also seeded (see `seed.py`).
 
-🧪 First Login
+---
 
-Use a test user or create one via your backend.
+## 🌐 API Endpoints
 
-Example login request:
+### Auth — `/auth`
+| Method | Path | Description |
+|---|---|---|
+| POST | `/auth/register` | Register new user |
+| POST | `/auth/login` | Login, returns JWT tokens |
+| POST | `/auth/refresh` | Refresh access token |
+| GET | `/auth/me` | Get current user (JWT required) |
 
-POST /auth/login
+### Products — `/products`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/products` | Public |
+| GET | `/products/:id` | Public |
+| POST | `/products` | Admin |
+| PUT | `/products/:id` | Admin |
+| DELETE | `/products/:id` | Admin |
 
-⚠️ Troubleshooting
-Build fails?
+### Categories — `/categories`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/categories` | Public |
+| POST | `/categories` | Admin |
+| PUT | `/categories/:id` | Admin |
+| DELETE | `/categories/:id` | Admin |
 
-Clean Docker cache:
+### Cart — `/cart`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/cart` | User |
+| POST | `/cart/items` | User |
+| PUT | `/cart/items/:id` | User |
+| DELETE | `/cart/items/:id` | User |
 
+### Orders — `/orders`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/orders` | User (own) / Admin (all) |
+| GET | `/orders/:id` | User (own) / Admin |
+| POST | `/orders/checkout` | User |
+| PUT | `/orders/:id` | Admin |
+
+### Delivery — `/delivery`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/delivery/orders` | Delivery / Admin |
+| PUT | `/delivery/orders/:id` | Delivery / Admin |
+
+### Users — `/users`
+| Method | Path | Auth |
+|---|---|---|
+| GET | `/users/me` | Any logged-in user |
+| PUT | `/users/me` | Any logged-in user |
+| DELETE | `/users/me` | Any logged-in user |
+| GET | `/users` | Admin |
+| POST | `/users` | Admin |
+| PUT | `/users/:id` | Admin |
+| DELETE | `/users/:id` | Admin |
+
+### Other
+- `GET /files/:key` — Serve uploaded images (public)
+- `GET /inventory-logs` — Admin only
+- `GET /category-logs` — Admin only
+- `GET /api/health` — Health check
+
+---
+
+## 👥 Roles & Permissions
+
+| Feature | User | Delivery | Admin |
+|---|---|---|---|
+| Browse products | ✅ | ✅ | ✅ |
+| Place orders | ✅ | — | ✅ |
+| View own orders | ✅ | — | ✅ |
+| View all orders | — | — | ✅ |
+| Update delivery status | — | ✅ | ✅ |
+| Manage products | — | — | ✅ |
+| Manage categories | — | — | ✅ |
+| Manage users | — | — | ✅ |
+| View logs | — | — | ✅ |
+
+---
+
+## 🛠 Environment Variables
+
+The app is configured via environment variables. In development, create a `.env` file in the `backend/` directory:
+
+```env
+SQLALCHEMY_DATABASE_URI=sqlite:///app.db
+SECRET_KEY=your-secret-key
+JWT_SECRET_KEY=your-jwt-secret
+UPLOAD_FOLDER=./instance/uploads
+CORS_ORIGINS=http://localhost:3000
+```
+
+For Docker, defaults are set in `docker-compose.yml`:
+
+```env
+MYSQL_ROOT_PASSWORD=rootpass
+MYSQL_DATABASE=supermarket
+MYSQL_USER=superuser
+MYSQL_PASSWORD=superpass
+SECRET_KEY=change-me-in-production
+JWT_SECRET_KEY=change-jwt-in-production
+```
+
+> ⚠️ Always change `SECRET_KEY` and `JWT_SECRET_KEY` in production.
+
+---
+
+## 🐳 Docker Notes
+
+- MySQL data is persisted in a Docker volume (`db_data`)
+- Uploaded images are persisted in a Docker volume (`uploads`)
+- Frontend is served by Nginx (production build)
+- Backend waits for MySQL health check before starting
+
+---
+
+## ⚠️ Troubleshooting
+
+**Build fails / DB not ready:**
+```bash
 docker compose down -v
 docker system prune -f
 docker compose up --build
+```
 
-Port already in use?
-
-Stop other containers:
-
+**Port already in use:**
+```bash
 docker ps
 docker stop <container_id>
+```
 
-Node build errors?
-
-Run locally to debug:
-
+**Frontend build errors:**
+```bash
 cd frontend
 npm run build
+```
+
+---
+
+## 👩‍💻 Author
+
+Maya Haeems — Full Stack Course Project
